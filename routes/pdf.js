@@ -172,17 +172,31 @@ router.post("/post/moveAndDel/:id", function (req, res) {
     );
   }
   if (pdfID != undefined) {
-    fs.appendFileSync(
-      directoryPath + "/savedPDFS.json",
-      JSON.stringify({ pdfID }),
-      // util.inspect({ id: id, name: name, textArr }),
-      "utf-8",
-      function (err, data) {
-        if (err) return console.log(err);
-        console.log(data);
-      },
-    );
-    res.json({ ok: true, pdf_ID: pdfID });
+    if (Object.keys(objPDFS).length === 0) {
+      fs.writeFileSync(
+        directoryPath + "/savedPDFS.json",
+        JSON.stringify({ pdfID }),
+        // util.inspect({ id: id, name: name, textArr }),
+        "utf-8",
+        function (err, data) {
+          if (err) return console.log(err);
+          console.log(data);
+        },
+      );
+      res.json({ ok: true, pdfID });
+    } else {
+      fs.appendFileSync(
+        directoryPath + "/savedPDFS.json",
+        JSON.stringify({ pdfID }),
+        // util.inspect({ id: id, name: name, textArr }),
+        "utf-8",
+        function (err, data) {
+          if (err) return console.log(err);
+          console.log(data);
+        },
+      );
+      res.json({ ok: true, pdf_ID: pdfID });
+    }
   } else {
     res.status(401).send(pdfID);
   }
@@ -256,6 +270,70 @@ router.post("/post/moveAndDel/:id", function (req, res) {
 //   res.end();
 // }
 // });
+
+router.post("/posts/newJson/:id", function (req, res) {
+  let newArr = [];
+  let newPDFSJSON;
+  let newPDFS;
+  let { id } = req.params;
+  const pdfID = objPDFS.filter((pID) => pID.id === parseInt(id))[0];
+  if (pdfID === undefined) {
+    res.send("ID is not exist");
+    res.end();
+  } else {
+    // Creating a new file if the file not exist.
+    if (!fs.existsSync(directoryPath + "/savedPDFS.json")) {
+      let result = [];
+      fs.writeFile(
+        directoryPath + "/savedPDFS.json",
+        result,
+        // util.inspect(newArr),
+        function (err, file) {
+          if (err) return res.send(err);
+          res.send("File has been created");
+        },
+      );
+    }
+    newPDFS = fs.readFileSync(directoryPath + "/savedPDFS.json", "utf8");
+    //If savedPDFS is not empty, copy all the objects to him.
+    if (newPDFS == 0) {
+      newArr.push(pdfID);
+      // res.send(newArr)
+      fs.writeFileSync(
+        directoryPath + "/savedPDFS.json",
+        JSON.stringify(newArr),
+        // util.inspect(pdfs),
+        "utf-8",
+        function (err, data) {
+          if (err) return console.log(err);
+          console.log(data);
+        },
+      );
+      newPDFS = fs.readFileSync(directoryPath + "/savedPDFS.json", "utf8");
+      newPDFSJSON = JSON.parse(newPDFS);
+      res.json({ ok: true, newPDFSJSON: newPDFSJSON });
+    } else {
+      newPDFS = fs.readFileSync(directoryPath + "/savedPDFS.json", "utf8");
+      newPDFSJSON = JSON.parse(newPDFS);
+      newArr.push(newPDFSJSON);
+      newArr.push(pdfID);
+      fs.truncate(directoryPath + "/savedPDFS.json");
+      fs.writeFileSync(
+        directoryPath + "/savedPDFS.json",
+        JSON.stringify(newArr),
+        // util.inspect({ id: id, name: name, textArr }),
+        "utf-8",
+        function (err, data) {
+          if (err) return console.log(err);
+          console.log(data);
+        },
+      );
+      newPDFS = fs.readFileSync(directoryPath + "/savedPDFS.json", "utf8");
+      newPDFSJSON = JSON.parse(newPDFS);
+      res.json({ ok: true, newPDFSJSON: newPDFSJSON });
+    }
+  }
+});
 // DELETE METHOD
 
 router.delete("/delete/deleteByID/:id", function (req, res) {
