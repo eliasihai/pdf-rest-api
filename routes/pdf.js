@@ -298,7 +298,6 @@ router.post("/posts/newJson/:id", function (req, res) {
     //If savedPDFS is not empty, copy all the objects to him.
     if (newPDFS == 0) {
       newArr.push(pdfID);
-      // res.send(newArr)
       fs.writeFileSync(
         directoryPath + "/savedPDFS.json",
         JSON.stringify(newArr),
@@ -311,16 +310,20 @@ router.post("/posts/newJson/:id", function (req, res) {
       );
       newPDFS = fs.readFileSync(directoryPath + "/savedPDFS.json", "utf8");
       newPDFSJSON = JSON.parse(newPDFS);
-      res.json({ ok: true, newPDFSJSON: newPDFSJSON });
+      // res.sendStatus(200)
+      try {
+        res.json({ ok: true, newPDFSJSON });
+      } catch (error) {
+        console.log(error);
+        res.send(error);
+      }
     } else {
       newPDFS = fs.readFileSync(directoryPath + "/savedPDFS.json", "utf8");
       newPDFSJSON = JSON.parse(newPDFS);
-      newArr.push(newPDFSJSON);
-      newArr.push(pdfID);
-      fs.truncate(directoryPath + "/savedPDFS.json");
+      newPDFSJSON.push(pdfID);
       fs.writeFileSync(
         directoryPath + "/savedPDFS.json",
-        JSON.stringify(newArr),
+        JSON.stringify(newPDFSJSON),
         // util.inspect({ id: id, name: name, textArr }),
         "utf-8",
         function (err, data) {
@@ -330,7 +333,12 @@ router.post("/posts/newJson/:id", function (req, res) {
       );
       newPDFS = fs.readFileSync(directoryPath + "/savedPDFS.json", "utf8");
       newPDFSJSON = JSON.parse(newPDFS);
-      res.json({ ok: true, newPDFSJSON: newPDFSJSON });
+      try {
+        res.json({ ok: true, newPDFSJSON });
+      } catch (error) {
+        console.log(error);
+        res.send(error);
+      }
     }
   }
 });
