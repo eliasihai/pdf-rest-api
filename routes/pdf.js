@@ -5,6 +5,9 @@ const router = express.Router();
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
+const base64ToImage = require("base64-to-image");
+const ImagesToPDF = require("images-pdf");
+const { endsWith } = require("lodash");
 
 const options = {
   key: fs.readFileSync("key.pem"),
@@ -15,6 +18,70 @@ let pdfs = fs.readFileSync("D:/Node JS/testbase64/testbase64/pdf.json", "utf8");
 let objPDFS = JSON.parse(pdfs);
 let directoryPath = path.join(__dirname + "/../");
 console.log(directoryPath);
+
+function base64ToJPG(textArr, name) {
+  for (let i = 0; i < textArr.length; i++) {
+    var base64Str = textArr[i];
+    var path = "D:/Node JS/pdf-rest-api/images";
+    var optionalObj = name + i + ".jpg";
+    base64ToImage(base64Str, path);
+  }
+}
+
+function createFolder(name) {
+  if (!fs.existsSync(name)) {
+    fs.mkdirSync(name);
+  }
+}
+
+function moveJPGFiles(name) {
+  // if (endsWith(".jpg")) {
+  fs.readdir(directoryPath, function (err, files) {
+    var EXTENSION = ".jpg";
+    files.filter(function (file) {
+      if (path.extname(file).toLowerCase() === EXTENSION) {
+        fs.rename(
+          "D:/Node JS/pdf-rest-api/" + file,
+          "D:/Node JS/pdf-rest-api/" + name + "/" + file,
+          function (err) {
+            if (err) throw err;
+            console.log("Successfully renamed - AKA moved!");
+          },
+        );
+      }
+    });
+
+    // }
+  });
+}
+
+function movePDFFiles(name) {
+  // if (endsWith(".jpg")) {
+  fs.readdir(directoryPath, function (err, files) {
+    var EXTENSION = ".pdf";
+    files.filter(function (file) {
+      if (path.extname(file).toLowerCase() === EXTENSION) {
+        fs.rename(
+          "D:/Node JS/pdf-rest-api/" + file,
+          "D:/" + file,
+          function (err) {
+            if (err) throw err;
+            console.log("Successfully move to 'D' directory!");
+          },
+        );
+      }
+    });
+
+    // }
+  });
+}
+
+function jpgTOpdf(name) {
+  let newPath = path.join("D:/Node JS/pdf-rest-api/" + name);
+  console.log(newPath);
+  console.log("PDF file had been created!!!");
+  new ImagesToPDF.ImagesToPDF().convertFolderToPDF(newPath, name + ".pdf");
+}
 
 //Get all pdfs
 router.get("/", (_, res) => {
@@ -275,6 +342,38 @@ router.post("/posts/newJson/:id", function (req, res) {
       }
     }
   }
+});
+
+router.post("/posts/imagesToPDF", function (req, res) {
+  let objPDF = [req.body];
+  let id = req.body.id;
+  let name = req.body.name;
+  let textArr = req.body.arr;
+  let arr = [];
+  // arr.push({ id: id, name: name, textArr });
+  // let pdfFile = fs.writeFileSync(
+  //   __dirname + "/" + name + ".json",
+  //   JSON.stringify(arr),
+  //   "utf-8",
+  //   function (err, data) {
+  //     if (err) return console.log(err);
+  //     console.log(data);
+  //   },
+  // );
+
+  createFolder(name);
+  base64ToJPG(textArr, name);
+  moveJPGFiles(name);
+  setTimeout(function () {
+    jpgTOpdf(name);
+  }, 1500);
+
+  setTimeout(function () {
+    movePDFFiles(name);
+  }, 3000);
+
+  // res.send(textArr);
+  // res.json({ok: true, arr:arr})
 });
 // DELETE METHOD
 

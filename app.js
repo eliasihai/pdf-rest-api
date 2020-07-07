@@ -7,11 +7,11 @@ const secure = require("express-force-https");
 const app = express();
 const https = require("https");
 const fs = require("fs");
-const port = process.env.PORT || 5037;
+const port = process.env.PORT || 4041;
 
-const key = fs.readFileSync('./key.pem');
-const cert = fs.readFileSync('./cert.pem');
-const server = https.createServer({key: key, cert: cert }, app);
+const key = fs.readFileSync("./key.pem");
+const cert = fs.readFileSync("./cert.pem");
+const server = https.createServer({ key: key, cert: cert }, app);
 // const options = {
 //   key: fs.readFileSync("key.pem"),
 //   cert: fs.readFileSync("cert.pem"),
@@ -24,8 +24,8 @@ const usersRoute = require("./routes/user");
 app.use(cors());
 // app.use(secure);
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
+app.use(bodyParser.json({ limit: "10mb", extended: true }));
 app.use("/pdfs", pdfsRoute);
 // app.use("/users", usersRoute);
 
@@ -35,7 +35,6 @@ app.get("/", (req, res) => {
 
 // app.get('/', (req, res) => { res.send('this is an secure server') });
 // server.listen(3001, () => { console.log('listening on 3001') });
-
 
 // Listen to the server
 app.listen(port, () => {
